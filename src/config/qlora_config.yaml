@@ -1,0 +1,30 @@
+hyperparameters:
+  learning_rate: 2e-5
+  batch_size: 16
+  num_epochs: 3
+  max_seq_length: 512
+  gradient_accumulation_steps: 2
+  weight_decay: 0.01
+  warmup_steps: 500
+  logging_steps: 100
+  save_steps: 500
+  evaluation_steps: 500
+
+model:
+  model_name: "your_model_name_here"
+  use_fp16: true
+  load_in_8bit: true
+
+data:
+  train_file: "path/to/train.jsonl"
+  validation_file: "path/to/validation.jsonl"
+  max_samples: 10000
+
+output:
+  output_dir: "./results"
+  save_total_limit: 2
+
+training:
+  do_train: true
+  do_eval: true
+  evaluation_strategy: "steps"

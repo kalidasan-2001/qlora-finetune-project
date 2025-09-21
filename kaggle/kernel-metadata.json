@@ -1,0 +1,18 @@
+{
+  "id": "qlora-finetune-project",
+  "title": "QLoRA Fine-Tuning Project",
+  "code_file": "src/training/run_qlora.py",
+  "language": "python",
+  "kernel_type": "notebook",
+  "description": "This kernel fine-tunes a model using QLoRA, leveraging parameter-efficient fine-tuning techniques for improved performance on specific tasks.",
+  "tags": [
+    "machine learning",
+    "fine-tuning",
+    "QLoRA",
+    "NLP"
+  ],
+  "dataset_sources": [],
+  "kernel_sources": [],
+  "enable_gpu": true,
+  "enable_internet": true
+}

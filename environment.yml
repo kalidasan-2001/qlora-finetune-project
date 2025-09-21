@@ -1,0 +1,23 @@
+name: qlora-finetune-project
+channels:
+  - defaults
+dependencies:
+  - python=3.8
+  - pip
+  - numpy
+  - pandas
+  - scikit-learn
+  - torch
+  - transformers
+  - datasets
+  - accelerate
+  - pyyaml
+  - tqdm
+  - jupyterlab
+  - ipykernel
+  - matplotlib
+  - seaborn
+  - logging
+  - pip:
+      - peft
+      - wandb

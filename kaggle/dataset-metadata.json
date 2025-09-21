@@ -1,0 +1,36 @@
+{
+  "title": "QLoRA Fine-Tuning Dataset",
+  "id": "qlora-finetune-dataset",
+  "licenses": [
+    {
+      "name": "CC BY 4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+    }
+  ],
+  "description": "This dataset is used for fine-tuning models using QLoRA. It contains various samples formatted for training and evaluation.",
+  "keywords": [
+    "QLoRA",
+    "fine-tuning",
+    "dataset",
+    "machine learning"
+  ],
+  "sources": [
+    {
+      "name": "OpenAI",
+      "url": "https://openai.com/"
+    }
+  ],
+  "version": "1.0",
+  "files": [
+    {
+      "name": "train.jsonl",
+      "description": "Training data in JSON Lines format.",
+      "size": "500MB"
+    },
+    {
+      "name": "validation.jsonl",
+      "description": "Validation data in JSON Lines format.",
+      "size": "100MB"
+    }
+  ]
+}

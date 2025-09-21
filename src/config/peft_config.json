@@ -1,0 +1,14 @@
+{
+  "peft_type": "QLoRA",
+  "base_model": "gpt-2",
+  "lora_r": 16,
+  "lora_alpha": 32,
+  "lora_dropout": 0.1,
+  "target_modules": [
+    "q_proj",
+    "v_proj"
+  ],
+  "train_on_inputs": true,
+  "init_8bit": true,
+  "fan_in_fan_out": true
+}

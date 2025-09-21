@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+.env*
+.vscode/
+runs/
+.cache/
+huggingface/
+*.safetensors
+*.bin
+*.log
+Thumbs.db
+.DS_Store
