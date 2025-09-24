@@ -16,40 +16,37 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+          cache: 'pip'
 
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
 
-      - name: Install requirements (tolerate bitsandbytes failure)
+      - name: Install CPU torch and deps (skip torch/bitsandbytes pins)
         shell: bash
         run: |
           set -e
-          if pip install -r requirements.txt; then
-            echo "Installed all requirements."
-          else
-            echo "pip install failed; retrying without bitsandbytes..."
-            grep -vi '^bitsandbytes' requirements.txt > requirements-nobnb.txt
-            pip install -r requirements-nobnb.txt
-          fi
+          pip install --index-url https://download.pytorch.org/whl/cpu torch==2.3.0
+          awk 'tolower($0) !~ /^torch/ && tolower($0) !~ /^bitsandbytes/' requirements.txt > requirements-ci.txt
+          pip install -r requirements-ci.txt
 
       - name: Prepare minimal dataset
         shell: bash
         run: |
           mkdir -p data
           if [ ! -s data/sft.jsonl ]; then
-            cat > data/sft.jsonl << 'EOF'
-{"messages":[{"role":"system","content":"You are a helpful, concise assistant."},{"role":"user","content":"What is LoRA?"},{"role":"assistant","content":"LoRA fine-tunes models using small low-rank adapters while freezing base weights."}]}
-EOF
+            echo '{"messages":[{"role":"system","content":"You are a helpful, concise assistant."},{"role":"user","content":"What is LoRA?"},{"role":"assistant","content":"LoRA fine-tunes models using small low-rank adapters while freezing base weights."}]}' > data/sft.jsonl
           fi
-          echo "Dataset lines:" && wc -l data/sft.jsonl
+          wc -l data/sft.jsonl
 
       - name: Tiny dry-run training (CPU, tiny GPT-2)
         env:
+          HF_HOME: ${{ github.workspace }}/.cache/huggingface
+          TOKENIZERS_PARALLELISM: "false"
           BASE_MODEL: sshleifer/tiny-gpt2
-          USE_4BIT: "0"         # no GPU in CI
+          USE_4BIT: "0"
           MAX_SEQ_LEN: "64"
           GRAD_ACCUM: "1"
-          MAX_STEPS: "1"        # single-step smoke test
+          MAX_STEPS: "1"
           OUT_DIR: runs/ci-test
         run: |
           python -u scripts/train.py
