@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-dryrun:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install requirements (tolerate bitsandbytes failure)
+        shell: bash
+        run: |
+          set -e
+          if pip install -r requirements.txt; then
+            echo "Installed all requirements."
+          else
+            echo "pip install failed; retrying without bitsandbytes..."
+            grep -vi '^bitsandbytes' requirements.txt > requirements-nobnb.txt
+            pip install -r requirements-nobnb.txt
+          fi
+
+      - name: Prepare minimal dataset
+        shell: bash
+        run: |
+          mkdir -p data
+          if [ ! -s data/sft.jsonl ]; then
+            cat > data/sft.jsonl << 'EOF'
+{"messages":[{"role":"system","content":"You are a helpful, concise assistant."},{"role":"user","content":"What is LoRA?"},{"role":"assistant","content":"LoRA fine-tunes models using small low-rank adapters while freezing base weights."}]}
+EOF
+          fi
+          echo "Dataset lines:" && wc -l data/sft.jsonl
+
+      - name: Tiny dry-run training (CPU, tiny GPT-2)
+        env:
+          BASE_MODEL: sshleifer/tiny-gpt2
+          USE_4BIT: "0"         # no GPU in CI
+          MAX_SEQ_LEN: "64"
+          GRAD_ACCUM: "1"
+          MAX_STEPS: "1"        # single-step smoke test
+          OUT_DIR: runs/ci-test
+        run: |
+          python -u scripts/train.py
+
+      - name: Verify adapter was created
+        run: |
+          test -d runs/ci-test/adapter || (echo "Adapter not found" && exit 1)
+          ls -la runs/ci-test/adapter
