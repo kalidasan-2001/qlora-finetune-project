@@ -5,8 +5,47 @@ on:
   pull_request:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: Install ruff
+        run: pip install ruff==0.5.5
+      - name: Ruff check
+        run: ruff check scripts
+
+  data-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: Validate data/sft.jsonl
+        run: |
+          python - <<'PY'
+          import json, sys, pathlib
+          p = pathlib.Path("data/sft.jsonl")
+          if not p.exists(): sys.exit("data/sft.jsonl missing")
+          with p.open(encoding="utf-8") as f:
+              for i,line in enumerate(f,1):
+                  if not line.strip(): continue
+                  obj=json.loads(line)
+                  assert "messages" in obj and isinstance(obj["messages"], list), f"line {i}: messages missing"
+                  for m in obj["messages"]:
+                      assert set(m)=={"role","content"}, f"line {i}: bad message keys"
+                      assert m["role"] in {"system","user","assistant"}, f"line {i}: bad role"
+          print("data ok")
+          PY
+
   build-and-dryrun:
     runs-on: ubuntu-latest
+    needs: [lint, data-validate]
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -55,3 +94,9 @@ jobs:
         run: |
           test -d runs/ci-test/adapter || (echo "Adapter not found" && exit 1)
           ls -la runs/ci-test/adapter
+
+      - name: Upload adapter artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-adapter
+          path: runs/ci-test/adapter
